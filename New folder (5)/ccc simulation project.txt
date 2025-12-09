@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_BOOKINGS 100
+
+// ----------- Train Structure -----------
+typedef struct {
+    char trainName[50];
+    int trainNumber;
+    int totalSeats;
+    int bookedSeats;
+    char className[20];
+    double farePerSeat;
+} Train;
+
+// ----------- Booking Structure -----------
+typedef struct {
+    char passengerName[50];
+    char trainClass[20];
+    char trainName[50];
+    char source[50];
+    char destination[50];
+    int seats;
+    double fare;
+} Booking;
+
+Booking bookingHistory[MAX_BOOKINGS];
+int bookingCount = 0;
+
+// ----------- Train Objects ---------------
+Train sleeperTrain = {"Chennai Express", 12345, 30, 0, "Sleeper", 150.0};
+Train acTrain      = {"Hyderabad Express", 54321, 20, 0, "AC", 300.0};
+Train generalTrain = {"Vijayawada Express", 67890, 50, 0, "General", 100.0};
+
+// ---------- Function Prototypes ----------
+Train* chooseClass(int *choice);
+void bookTicket();
+void cancelTicket();
+void checkAvailability();
+void viewHistory();
+void menu();
+
+// ----------- Choose Class Function -----------
+Train* chooseClass(int *choice) {
+    printf("\nSelect Train Class:\n");
+    printf("1. Sleeper\n2. AC\n3. General\nEnter choice: ");
+    scanf("%d", choice);
+
+    if (*choice == 1) return &sleeperTrain;
+    else if (*choice == 2) return &acTrain;
+    else return &generalTrain;
+}
+
+// ----------- Book Ticket ----------
+void bookTicket() {
+    char name[50], source[50], destination[50];
+    int seats, classChoice;
+
+    printf("Enter passenger name: ");
+    scanf(" %[^\n]", name);
+    printf("Enter source: ");
+    scanf(" %[^\n]", source);
+    printf("Enter destination: ");
+    scanf(" %[^\n]", destination);
+    printf("Enter number of seats: ");
+    scanf("%d", &seats);
+
+    Train *train = chooseClass(&classChoice);
+
+    if (train->bookedSeats + seats <= train->totalSeats) {
+        train->bookedSeats += seats;
+
+        double fare = seats * train->farePerSeat;
+
+        Booking b;
+        strcpy(b.passengerName, name);
+        strcpy(b.source, source);
+        strcpy(b.destination, destination);
+        b.seats = seats;
+        b.fare = fare;
+        strcpy(b.trainClass, train->className);
+        strcpy(b.trainName, train->trainName);
+
+        bookingHistory[bookingCount++] = b;
+
+        printf("\n--- Booking Successful! ---\n");
+        printf("Train: %s\n", train->trainName);
+        printf("From: %s To: %s\n", source, destination);
+        printf("Total Fare: ₹%.2f\n", fare);
+
+    } else {
+        printf("Sorry! Not enough seats available.\n");
+    }
+}
+
+// ----------- Cancel Ticket ----------
+void cancelTicket() {
+    int seats, classChoice;
+    Train *train = chooseClass(&classChoice);
+
+    printf("Enter number of seats to cancel: ");
+    scanf("%d", &seats);
+
+    if (seats <= train->bookedSeats) {
+        train->bookedSeats -= seats;
+        printf("%d seat(s) cancelled successfully!\n", seats);
+    } else {
+        printf("Invalid cancellation request!\n");
+    }
+}
+
+// ----------- Check Availability ----------
+void checkAvailability() {
+    int classChoice;
+    Train *train = chooseClass(&classChoice);
+
+    printf("\nTrain Name: %s", train->trainName);
+    printf("\nTrain Number: %d", train->trainNumber);
+    printf("\nTotal Seats: %d", train->totalSeats);
+    printf("\nBooked Seats: %d", train->bookedSeats);
+    printf("\nAvailable Seats: %d\n", train->totalSeats - train->bookedSeats);
+}
+
+// ----------- View Booking History ----------
+void viewHistory() {
+    if (bookingCount == 0) {
+        printf("No bookings yet.\n");
+        return;
+    }
+
+    printf("\n--- Booking History ---\n");
+    for (int i = 0; i < bookingCount; i++) {
+        Booking b = bookingHistory[i];
+        printf("\nPassenger: %s | Train: %s | Class: %s\n", b.passengerName, b.trainName, b.trainClass);
+        printf("From: %s -> %s | Seats: %d | Fare: ₹%.2f\n",
+               b.source, b.destination, b.seats, b.fare);
+    }
+}
+
+// ----------- Menu ----------
+void menu() {
+    int choice;
+    do {
+        printf("\n--- Railway Ticket Booking System ---\n");
+        printf("1. Book Ticket\n2. Cancel Ticket\n3. Check Availability\n4. View Booking History\n5. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch(choice) {
+            case 1: bookTicket(); break;
+            case 2: cancelTicket(); break;
+            case 3: checkAvailability(); break;
+            case 4: viewHistory(); break;
+            case 5: printf("Thank you for using the system!\n"); break;
+            default: printf("Invalid choice!\n");
+        }
+    } while (choice != 5);
+}
+
+// ----------- Main ----------
+int main() {
+    menu();
+    return 0;
+}
